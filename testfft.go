@@ -14,17 +14,6 @@ type Result struct {
 	Phase     float64
 }
 
-func f_t(t float64) float64 {
-	return math.Sin(2 * math.Pi * t)
-}
-func decomposedSignal(result []Result, t float64) float64 {
-	var signal float64 = 0
-	for _, res := range result {
-		signal += res.Amplitude * math.Cos(2*math.Pi*res.Frequency*t+res.Phase)
-	}
-	return signal
-}
-
 func verifyDecomposition(results []Result, N int, T float64, tolerance float64) (bool, []float64) {
 	var reconstructedSignal []float64 = make([]float64, N)
 	for i := 0; i < N; i++ {
@@ -43,24 +32,21 @@ func verifyDecomposition(results []Result, N int, T float64, tolerance float64) 
 			maxError = error
 		}
 	}
-
 	return maxError <= tolerance, errors
 }
 
-func analyzeSignal() []Result {
-	const T float64 = 9
-	const N int = 8192
-	const t float64 = T / float64(N)
-	const f float64 = 1 / t
-	const df float64 = f / float64(N)
+func analyzeSignal(f_t signal, T float64, N_sample int) []Result {
+	var t float64 = T / float64(N_sample)
+	var f float64 = 1 / t
+	var df float64 = f / float64(N_sample)
 	const sensitivity float64 = 1e-5
 
 	var n_nyquist int = int(math.Floor(f / 2))
-	var samples []complex128 = make([]complex128, N)
-	for i := 0; i < N; i++ {
+	var samples []complex128 = make([]complex128, N_sample)
+	for i := 0; i < N_sample; i++ {
 		samples[i] = complex(f_t(float64(i)*t), 0)
 	}
-	var p_fft_normal []complex128 = FFT(samples, N)
+	var p_fft_normal []complex128 = FFT(samples, N_sample)
 
 	fmt.Printf("---------FFT Analysis for frequencies less than %v-----------\n", n_nyquist)
 	p_fft_normal = p_fft_normal[:(n_nyquist)]
@@ -74,26 +60,13 @@ func analyzeSignal() []Result {
 		}
 		p_fft_normal[ind] = p_fft_normal[ind] * complex(2, 0)
 		if cmplx.Abs(p_fft_normal[ind]) > sensitivity {
-			var Amplitude float64 = cmplx.Abs(p_fft_normal[ind]) / float64(N)
+			var Amplitude float64 = cmplx.Abs(p_fft_normal[ind]) / float64(N_sample)
 			var phase float64 = cmplx.Phase(p_fft_normal[ind])
 			var res Result = Result{float64(ind) * df, Amplitude, phase}
 			results = append(results, res)
 		}
 	}
-	if len(results) == 0 {
-		fmt.Println("No significant frequency found")
-		return results
-	}
-	for _, val := range results {
-		fmt.Printf("Frequency: %v, Amplitude: %v, Phase: %v\n", val.Frequency, val.Amplitude, val.Phase)
-	}
-	verification, errors := verifyDecomposition(results, N, T, 1e-4)
-	analyzeError(errors)
-	if verification {
-		fmt.Println("Decomposition is correct.")
-	} else {
-		fmt.Println("Decomposition is erroneous.")
-	}
+	
 	return results
 }
 
