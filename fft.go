@@ -34,7 +34,7 @@ func FFTParallel(p []complex128, n int, wg *sync.WaitGroup) []complex128 {
 	wg2.Wait()
 	var p_fft []complex128 = make([]complex128, n)
 	var factor float64 = 2 * math.Pi / float64(n)
-	var twiddleStep complex128 = cmplx.Exp(complex(0, factor))
+	var twiddleStep complex128 = cmplx.Exp(complex(0, -factor))
 	var twiddle complex128 = 1
 	for i := 0; i < n/2; i++ {
 		p_fft[i] = u_fft[i] + twiddle*v_fft[i]
@@ -77,15 +77,13 @@ func FFT(p []complex128, n int) []complex128 {
 		u[i] = p[2*i]
 		v[i] = p[2*i+1]
 	}
-	// fmt.Println("U: ", u)
-	// fmt.Println("V: ", v)
 	var u_fft []complex128 = FFT(u, n/2)
 	var v_fft []complex128 = FFT(v, n/2)
 	var p_fft []complex128 = make([]complex128, n)
 
 	var factor float64 = 2 * math.Pi / float64(n)
 	var twiddle complex128 = complex(1, 0)
-	var twiddleStep complex128 = cmplx.Exp(complex(0, factor))
+	var twiddleStep complex128 = cmplx.Exp(complex(0, -factor))
 	for i := 0; i < n/2; i++ {
 		p_fft[i] = u_fft[i] + twiddle*v_fft[i]
 		p_fft[i+n/2] = u_fft[i] - twiddle*v_fft[i]
