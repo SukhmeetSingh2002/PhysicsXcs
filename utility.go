@@ -18,3 +18,26 @@ func checkSame(p1 *[]complex128, p2 *[]complex128, sensitivity float64) bool {
 	}
 	return true
 }
+
+func analyzeError(errors []float64) {
+	var N int = len(errors)
+	var maxError float64 = 0
+	var minError float64 = math.MaxFloat64
+	var sumError float64 = 0
+	for _, val := range errors {
+		if val > maxError {
+			maxError = val
+		}
+		if val < minError {
+			minError = val
+		}
+		sumError += val
+	}
+	var avgError float64 = sumError / float64(N)
+	var stdDeviation float64 = 0
+	for _, val := range errors {
+		stdDeviation += math.Pow(val-avgError, 2)
+	}
+	stdDeviation = math.Sqrt(stdDeviation / float64(N))
+	fmt.Printf("Max Error: %v, Min Error: %v, Average Error: %v, Standard Deviation: %v\n", maxError, minError, avgError, stdDeviation)
+}
