@@ -14,7 +14,7 @@ type Result struct {
 	Phase     float64
 }
 
-func verifyDecomposition(results []Result, N int, T float64, tolerance float64) (bool, []float64) {
+func verifyDecomposition(results []Result, f_t signal, N int, T float64, tolerance float64) (bool, []float64) {
 	var reconstructedSignal []float64 = make([]float64, N)
 	for i := 0; i < N; i++ {
 		t := float64(i) * T / float64(N)
@@ -26,7 +26,6 @@ func verifyDecomposition(results []Result, N int, T float64, tolerance float64) 
 	for i := 0; i < N; i++ {
 		originalValue := f_t(float64(i) * T / float64(N))
 		error := math.Abs(originalValue - reconstructedSignal[i])
-		// fmt.Println("Original: ", originalValue, "Reconstructed: ", reconstructedSignal[i], "Error: ", error)
 		errors[i] = error
 		if error > maxError {
 			maxError = error
@@ -35,17 +34,14 @@ func verifyDecomposition(results []Result, N int, T float64, tolerance float64) 
 	return maxError <= tolerance, errors
 }
 
-func analyzeSignal(f_t signal, T float64, N_sample int) []Result {
+func analyzeSignal(samples []complex128, T float64, N_sample int) []Result {
 	var t float64 = T / float64(N_sample)
 	var f float64 = 1 / t
 	var df float64 = f / float64(N_sample)
 	const sensitivity float64 = 1e-5
 
 	var n_nyquist int = int(math.Floor(f / 2))
-	var samples []complex128 = make([]complex128, N_sample)
-	for i := 0; i < N_sample; i++ {
-		samples[i] = complex(f_t(float64(i)*t), 0)
-	}
+
 	var p_fft_normal []complex128 = FFT(samples, N_sample)
 
 	fmt.Printf("---------FFT Analysis for frequencies less than %v-----------\n", n_nyquist)
@@ -66,7 +62,7 @@ func analyzeSignal(f_t signal, T float64, N_sample int) []Result {
 			results = append(results, res)
 		}
 	}
-	
+
 	return results
 }
 
@@ -104,4 +100,26 @@ func timeFFTImpl() {
 	} else {
 		panic("Inverted signal is not same as original")
 	}
+}
+
+func fftfreq(n int, d float64) []float64 {
+	freqs := make([]float64, n)
+	for i := range freqs {
+		if n%2 == 0 {
+			// Even window length
+			if i < n/2 {
+				freqs[i] = float64(i) / (d * float64(n))
+			} else {
+				freqs[i] = -float64(n-i) / (d * float64(n))
+			}
+		} else {
+			// Odd window length
+			if i <= (n-1)/2 {
+				freqs[i] = float64(i) / (d * float64(n))
+			} else {
+				freqs[i] = -float64(i-n+1) / (d * float64(n))
+			}
+		}
+	}
+	return freqs
 }
