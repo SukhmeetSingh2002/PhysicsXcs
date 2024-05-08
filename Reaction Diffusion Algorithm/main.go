@@ -16,8 +16,8 @@ const (
 	height int     = 240
 	D_a    float64 = 1.0
 	D_b    float64 = 0.5
-	feed   float64 = 0.03
-	k      float64 = 0.058
+	feed   float64 = 0.0545
+	k      float64 = 0.062
 	dt     float64 = 1
 )
 
@@ -31,6 +31,7 @@ var pixels_t1 [width][height]Pixel
 var pixels_t2 [width][height]Pixel
 var initial_amt Pixel = Pixel{1, 0}
 var laplacian_kernel [3][3]float64 = [3][3]float64{{0.05, 0.2, 0.05}, {0.2, -1, 0.2}, {0.05, 0.2, 0.05}}
+var orientation Orientation = Orientation{width / 2, height / 2, 0, 0} // symmetric shape
 
 func (g *Game) Update() error {
 	swap(&pixels_t1, &pixels_t2)
@@ -40,8 +41,10 @@ func (g *Game) Update() error {
 			var b float64 = pixels_t1[i][j].conc_b
 			var laplacian_a float64 = laplacian(true, i, j)
 			var laplacian_b float64 = laplacian(false, i, j)
-			pixels_t2[i][j].conc_a = a + (D_a*laplacian_a-a*b*b+feed*(1-a))*dt
-			pixels_t2[i][j].conc_b = b + (D_b*laplacian_b+a*b*b-(k+feed)*b)*dt
+			var newD_a float64 = D_a + math.Abs(float64(i-orientation.center_x))*orientation.dx //  inreases diffusion rate by dx per pixel going away from center
+			var newD_b float64 = D_b + math.Abs(float64(j-orientation.center_y))*orientation.dy
+			pixels_t2[i][j].conc_a = a + (newD_a*laplacian_a-a*b*b+feed*(1-a))*dt
+			pixels_t2[i][j].conc_b = b + (newD_b*laplacian_b+a*b*b-(k+feed)*b)*dt
 			clip(&pixels_t2[i][j].conc_a, 0, 1)
 			clip(&pixels_t2[i][j].conc_b, 0, 1)
 		}
