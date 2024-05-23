@@ -8,7 +8,7 @@ import (
 type signal func(float64) float64
 
 func f_t(t float64) float64 {
-	return 1 * math.Sin(2*math.Pi*8000*t)
+	return 1 * math.Sin(2*math.Pi*6*t) + 2*math.Sin(2*math.Pi*10*t) + 3*math.Sin(2*math.Pi*15*t)
 }
 
 func decomposedSignal(result []Result, t float64) float64 {
@@ -22,7 +22,7 @@ func decomposedSignal(result []Result, t float64) float64 {
 func main() {
 	timeFFTImpl()
 
-	// // ref: https://youtu.be/mkGsMWi_j4Q?si=fOWOdx6yhox0-cse
+	// ref: https://youtu.be/mkGsMWi_j4Q?si=fOWOdx6yhox0-cse
 	const N_sample int = 4096 * 2
 	const T float64 = 1 // 2*pi if it's 4*t,2*t etc. else take 1
 

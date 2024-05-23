@@ -14,17 +14,17 @@ type Game struct{}
 const (
 	width  int     = 320
 	height int     = 240
-	D_a    float64 = 1.0
-	D_b    float64 = 0.5
-	feed   float64 = 0.0545
-	k      float64 = 0.062
+	D_a    float64 = 0.26
+	D_b    float64 = 0.13
+	feed   float64 = 0.026
+	k      float64 = 0.052
 	dt     float64 = 1
 )
 
 var fav_feed []FavoriteValues = []FavoriteValues{
-	FavoriteValues{0.03, 0.058},    // symmetric shape
-	FavoriteValues{0.0367, 0.0649}, // mitosis
-	FavoriteValues{0.0545, 0.062},  // coral
+	FavoriteValues{0.0367, 0.0649, 1, 0.5}, // mitosis
+	FavoriteValues{0.029, 0.057, 0.21, 0.13},
+	FavoriteValues{0.026, 0.052, 0.26, 0.13},
 }
 
 var pixels_t1 [width][height]Pixel

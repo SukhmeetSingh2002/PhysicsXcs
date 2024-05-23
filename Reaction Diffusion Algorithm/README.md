@@ -1,5 +1,4 @@
 # Reaction diffusion algorithm
-
 - ref: https://karlsims.com/rd.html <br/>
   TODO:
 - [x] Implement the algorithm

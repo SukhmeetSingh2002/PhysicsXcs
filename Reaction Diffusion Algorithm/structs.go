@@ -7,6 +7,8 @@ type Pixel struct {
 type FavoriteValues struct {
 	feed float64
 	k    float64
+	D_a  float64
+	D_b  float64
 }
 type Orientation struct { // models shape of container
 	center_x int
