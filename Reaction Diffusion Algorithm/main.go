@@ -4,28 +4,37 @@ import (
 	"image/color"
 	"log"
 	"math"
-
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-type Game struct{}
+type Game struct{
+	Grid *Grid
+}
 
 // ref: https://karlsims.com/rd.html
 const (
 	width  int     = 320
 	height int     = 240
-	D_a    float64 = 0.26
-	D_b    float64 = 0.13
-	feed   float64 = 0.026
-	k      float64 = 0.052
+	// D_a    float64 = 0.26
+	// D_b    float64 = 0.13
+	// feed   float64 = 0.026
+	// k      float64 = 0.052
 	dt     float64 = 1
 )
 
 var fav_feed []FavoriteValues = []FavoriteValues{
 	FavoriteValues{0.0367, 0.0649, 1, 0.5}, // mitosis
+	FavoriteValues{0.025, 0.055,  0.082, 0.041},
 	FavoriteValues{0.029, 0.057, 0.21, 0.13},
 	FavoriteValues{0.026, 0.052, 0.26, 0.13},
 }
+
+var fav_index int = 1
+var feed float64 = fav_feed[fav_index].feed
+var k float64 = fav_feed[fav_index].k
+var D_a float64 = fav_feed[fav_index].D_a
+var D_b float64 = fav_feed[fav_index].D_b
+
 
 var pixels_t1 [width][height]Pixel
 var pixels_t2 [width][height]Pixel
@@ -43,8 +52,13 @@ func (g *Game) Update() error {
 			var laplacian_b float64 = laplacian(false, i, j)
 			var newD_a float64 = D_a + math.Abs(float64(i-orientation.center_x))*orientation.dx //  inreases diffusion rate by dx per pixel going away from center
 			var newD_b float64 = D_b + math.Abs(float64(j-orientation.center_y))*orientation.dy
-			pixels_t2[i][j].conc_a = a + (newD_a*laplacian_a-a*b*b+feed*(1-a))*dt
-			pixels_t2[i][j].conc_b = b + (newD_b*laplacian_b+a*b*b-(k+feed)*b)*dt
+
+			var feedRate = g.Grid.StyleMap[i][j].FeedRate
+			var killRate = g.Grid.StyleMap[i][j].KillRate
+
+
+			pixels_t2[i][j].conc_a = a + (newD_a*laplacian_a-a*b*b+feedRate*(1-a))*dt
+			pixels_t2[i][j].conc_b = b + (newD_b*laplacian_b+a*b*b-(killRate+feedRate)*b)*dt
 			clip(&pixels_t2[i][j].conc_a, 0, 1)
 			clip(&pixels_t2[i][j].conc_b, 0, 1)
 		}
@@ -88,7 +102,10 @@ func main() {
 		}
 	}
 
-	if err := ebiten.RunGame(&Game{}); err != nil {
+	grid := NewGrid(width, height, feed, k)
+	game := &Game{Grid: grid}
+
+	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
 	}
 }
